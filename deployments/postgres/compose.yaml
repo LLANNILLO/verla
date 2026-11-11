@@ -1,0 +1,36 @@
+---
+services:
+  postgres:
+    # PostgreSQL 18 (deviation from TRD's 17: record it as an ADR in docs/adr/).
+    image: postgres:18-alpine
+    restart: unless-stopped
+    container_name: Verla.Database
+    environment:
+      # ${VAR:?msg} makes Compose fail loudly when a variable is missing,
+      # instead of silently ignoring a typo.
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    ports:
+      # Bound to loopback only: reachable from this machine, not from the LAN.
+      - "127.0.0.1:${POSTGRES_PORT:-64321}:5432"
+    healthcheck:
+      # TCP (-h 127.0.0.1) on purpose: during first init the entrypoint runs a
+      # temporary server on the Unix socket only, so a socket check would report
+      # "ready" too early. $$ defers expansion to the container's shell.
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -h 127.0.0.1 -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    volumes:
+      # PostgreSQL 18+ images keep PGDATA at /var/lib/postgresql/18/docker;
+      # mount the parent so major upgrades can use pg_upgrade --link.
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:

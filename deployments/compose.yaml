@@ -1,0 +1,10 @@
+# Root of the local stack. It only names the project and includes one
+# self-contained fragment per service. Each fragment resolves relative paths
+# from its own folder and can be validated on its own:
+#   docker compose --env-file .env -f deployments/postgres/compose.yaml config
+name: verla
+
+include:
+  - path: postgres/compose.yaml
+  # - path: api/compose.yaml   # H0-T03: Go API (Dockerfile lives in apps/api)
+  # - path: web/compose.yaml   # H0-T05: SvelteKit app (Dockerfile lives in apps/web)

@@ -8,6 +8,17 @@
 *.so
 *.dylib
 
+# Editor/IDE
+# .idea/
+# .vscode/
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# ---------------------------------------------------------------
+# Go ignoring options
+# ---------------------------------------------------------------
 # Test binary, built with `go test -c`
 *.test
 
@@ -21,13 +32,22 @@ profile.cov
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
+# workspace file
 go.work
 go.work.sum
 
-# env file
+# Secrets
 .env
+.env.*
+!.env.example
 
-# Editor/IDE
-# .idea/
-# .vscode/
+/apps/api/bin/
+*.out
+coverage.*
+
+# ---------------------------------------------------------------
+# Node / SvelteKit
+# ---------------------------------------------------------------
+node_modules/
+/apps/web/.svelte-kit/
+/apps/web/build/

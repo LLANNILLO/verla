@@ -1,0 +1,77 @@
+version: "3"
+
+dotenv: [".env"]
+
+vars:
+  COMPOSE: docker compose --env-file .env -f deployments/compose.yaml
+
+# Shared preconditions for every task that talks to Docker Compose.
+x-compose-preconditions: &compose-preconditions
+  - sh: test -f .env
+    msg: "Missing .env. Run: cp .env.example .env"
+  - sh: docker info > /dev/null 2>&1
+    msg: "Docker is not running."
+
+tasks:
+  default:
+    silent: true
+    cmds:
+      - task --list
+
+  # --- Local stack -----------------------------------------------------------
+
+  up:
+    desc: Start the local stack and wait until every service is healthy
+    preconditions: *compose-preconditions
+    cmds:
+      - "{{.COMPOSE}} up -d --wait"
+
+  down:
+    desc: Stop the local stack (data volumes are kept)
+    preconditions: *compose-preconditions
+    cmds:
+      - "{{.COMPOSE}} down"
+
+  reset:
+    desc: Stop the local stack and delete its volumes (destroys local data)
+    prompt: This deletes all local database data. Continue?
+    preconditions: *compose-preconditions
+    cmds:
+      - "{{.COMPOSE}} down -v"
+
+  ps:
+    desc: Show the state and health of each service
+    preconditions: *compose-preconditions
+    cmds:
+      - "{{.COMPOSE}} ps"
+
+  logs:
+    desc: "Follow logs (all services, or one: task logs -- postgres)"
+    preconditions: *compose-preconditions
+    cmds:
+      - "{{.COMPOSE}} logs -f {{.CLI_ARGS}}"
+
+  # --- Database --------------------------------------------------------------
+
+  db:psql:
+    desc: Open a psql shell inside the postgres container
+    preconditions: *compose-preconditions
+    cmds:
+      - '{{.COMPOSE}} exec postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+
+  # --- Code (not implemented yet: fail loudly instead of passing silently) ---
+
+  generate:
+    desc: Regenerate code from the OpenAPI contract and SQL (H0-T07, H0-T09)
+    cmds:
+      - echo "generate is not implemented yet (H0-T07)" >&2; exit 1
+
+  test:
+    desc: Run every test suite (H0-T11)
+    cmds:
+      - echo "test is not implemented yet (H0-T11)" >&2; exit 1
+
+  lint:
+    desc: Run linters (H0-T14)
+    cmds:
+      - echo "lint is not implemented yet (H0-T14)" >&2; exit 1
